@@ -17,7 +17,11 @@ class FFmpegFuncActivity : AppCompatActivity() {
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-    external fun logInfo()
+    private external fun logInfo()
+
+    private external fun releaseNative()
+
+    private external fun setUpNative()
 
     companion object {
         // Used to load the 'native-lib' library on application startup.
@@ -33,6 +37,7 @@ class FFmpegFuncActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ffmpeg_func)
+        setUpNative()
         ffmpegFuncRecyclerView.adapter = FFmpegFuncAdapter(prepareData())
         ffmpegFuncRecyclerView.layoutManager = GridLayoutManager(this, 2, RecyclerView.VERTICAL, false)
 
@@ -45,5 +50,10 @@ class FFmpegFuncActivity : AppCompatActivity() {
             View.OnClickListener { logInfo() }
         ))
         return dataList
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        releaseNative()
     }
 }

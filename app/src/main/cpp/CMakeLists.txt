@@ -5,6 +5,17 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
+# include headers
+include_directories(
+        ${PROJECT_SOURCE_DIR}
+        include/ffmpeg
+        utils/
+)
+
+# copy source file path to FFMPEG_ENGINE
+aux_source_directory(${PROJECT_SOURCE_DIR} FFMPEG_ENGINE)
+
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
@@ -17,7 +28,8 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        native-lib.cpp)
+        native-lib.cpp
+        ${FFMPEG_ENGINE})
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -36,8 +48,6 @@ find_library( # Sets the name of the path variable.
 set(MY_FFMPEG_LIB_PATH ${CMAKE_SOURCE_DIR}/../jniLibs)
 set(MY_FFMPEG_LIB_NAME libffmpeg.so)
 
-# include headers of ffmpeg
-include_directories(include/ffmpeg)
 
 # add ffmpeg lib
 add_library(

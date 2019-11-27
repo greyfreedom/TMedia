@@ -3,29 +3,42 @@
 #include <logger.h>
 #include "FFmpegEngine.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 FFmpegEngine *ffmpeg;
 
-void logInfo() {
+void logInfo(JNIEnv *env, jobject) {
     if (ffmpeg) {
         ffmpeg->printCodecInfo();
     }
 }
 
-void setUpNative() {
+void setUpNative(JNIEnv *env, jobject) {
     if (!ffmpeg) {
         ffmpeg = new FFmpegEngine();
     }
 }
 
-void releaseNative() {
+void releaseNative(JNIEnv *env, jobject) {
     delete ffmpeg;
     ffmpeg = nullptr;
 }
 
+void decodeVideoToYUV(JNIEnv *env, jobject, jstring input, jstring output) {
+    if (ffmpeg) {
+        const char *inputPath = env->GetStringUTFChars(input, nullptr);
+        const char *outputPath = env->GetStringUTFChars(output, nullptr);
+        ffmpeg->decodeVideoToYUV(inputPath, outputPath);
+    }
+}
+
 static const JNINativeMethod gMethods[] = {
-        "logInfo", "()V", (void *) logInfo,
-        "setUpNative", "()V", (void *) setUpNative,
-        "releaseNative", "()V", (void *) releaseNative
+        {"logInfo", "()V", (void *) logInfo},
+        {"setUpNative", "()V", (void *) setUpNative},
+        {"releaseNative", "()V", (void *) releaseNative},
+        {"decodeVideoToYUV", "(Ljava/lang/String;Ljava/lang/String;)V", (void *) decodeVideoToYUV}
 };
 
 #define kClassName "com/demo/tmediademo/FFmpegFuncActivity"
@@ -49,3 +62,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     LOGI("JNI_OnLoad success\n");
     return JNI_VERSION_1_4;
 }
+
+#ifdef __cplusplus
+};
+#endif

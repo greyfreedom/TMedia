@@ -6,10 +6,14 @@
 #define TMEDIADEMO_FFMPEGENGINE_H
 
 #include <logger.h>
+#include <memory.h>
+#include <memory>
 
 extern "C" {
 #include "libavformat/avformat.h"
 };
+
+class VideoDecoder;
 
 class FFmpegEngine {
 public:
@@ -18,6 +22,13 @@ public:
     ~FFmpegEngine();
 
     void printCodecInfo();
+
+    void decodeVideoToYUV(const char *input, const char *output);
+
+    void releaseFFmpeg();
+
+private:
+    std::shared_ptr<VideoDecoder> mVideoDecoder;
 };
 
 

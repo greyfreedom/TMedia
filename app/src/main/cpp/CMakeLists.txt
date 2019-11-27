@@ -10,10 +10,12 @@ include_directories(
         ${PROJECT_SOURCE_DIR}
         include/ffmpeg
         utils/
+        decoder/
 )
 
-# copy source file path to FFMPEG_ENGINE
+# copy source file path
 aux_source_directory(${PROJECT_SOURCE_DIR} FFMPEG_ENGINE)
+aux_source_directory(${PROJECT_SOURCE_DIR}/decoder/ DECODER)
 
 
 # Creates and names a library, sets it as either STATIC
@@ -29,7 +31,8 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         native-lib.cpp
-        ${FFMPEG_ENGINE})
+        ${FFMPEG_ENGINE}
+        ${DECODER})
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

@@ -3,9 +3,9 @@
 //
 
 #include "FFmpegEngine.h"
+#include "VideoDecoder.h"
 
-FFmpegEngine::FFmpegEngine() {
-
+FFmpegEngine::FFmpegEngine() : mVideoDecoder(nullptr) {
 }
 
 FFmpegEngine::~FFmpegEngine() {
@@ -37,5 +37,18 @@ void FFmpegEngine::printCodecInfo() {
         sprintf(info, "%s[%10s]\n", info, codec->name);
         LOGI("%s\n", info);
         memset(info, 0, sizeof(info));
+    }
+}
+
+void FFmpegEngine::decodeVideoToYUV(const char *input, const char *output) {
+    if (!mVideoDecoder) {
+        mVideoDecoder = std::make_shared<VideoDecoder>();
+    }
+    mVideoDecoder->decode(input, output);
+}
+
+void FFmpegEngine::releaseFFmpeg() {
+    if (mVideoDecoder) {
+        mVideoDecoder->releaseDecoder();
     }
 }

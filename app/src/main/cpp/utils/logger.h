@@ -7,7 +7,7 @@
 
 #include <android/log.h>
 
-#define LOGI(format, ...) __android_log_print(ANDROID_LOG_INFO, "native", format, ##__VA_ARGS__)
-#define LOGE(format, ...) __android_log_print(ANDROID_LOG_ERROR, "(>_<)", format, ##__VA_ARGS__)
+#define LOGI(format, ...) __android_log_print(ANDROID_LOG_INFO, "native info", format, ##__VA_ARGS__)
+#define LOGE(format, ...) __android_log_print(ANDROID_LOG_ERROR, "native error", format, ##__VA_ARGS__)
 
 #endif //TMEDIADEMO_LOGGER_H

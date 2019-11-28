@@ -78,6 +78,7 @@ int VideoDecoder::decode(const char *inputPath, const char *outputPath) {
         releaseDecoder();
         return -1;
     }
+    LOGI("video width =%d, height = %d", width, height);
     ret = av_image_alloc(pFrame->data, pFrame->linesize, width, height, pDecodeCtx->pix_fmt, 1);
     if (ret < 0) {
         LOGE("decoder decode av_image_alloc pFrame failed.");

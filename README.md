@@ -8,7 +8,7 @@ x264版本:截止到2019年11月26日之前的最新版 [下载地址](https://w
 fdk-aac版本:2.0.0 [下载地址](http://www.linuxfromscratch.org/blfs/view/svn/multimedia/fdk-aac.html)
 
 ## TODO
-- [x] 视频解码成YUV
+- [x] 视频解码成YUV [博客地址](https://blog.csdn.net/greyfreedom/article/details/103319635)
 - [ ] 视频格式及尺寸变化
 - [ ] 视频编码成MP4
 - [ ] 音频解码成PCM

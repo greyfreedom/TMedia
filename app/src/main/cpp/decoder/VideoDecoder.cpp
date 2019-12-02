@@ -11,7 +11,7 @@ extern "C" {
 
 VideoDecoder::VideoDecoder() : pFormatCtx(nullptr), mVideoStreamIndex(0), pVideoStream(nullptr),
                                pVideoDecoder(nullptr), pDecodeCtx(nullptr), pFrame(nullptr), pOutFrame(nullptr),
-                               pPacket(nullptr), pSwsCtx(nullptr), yuvFile(nullptr) {
+                               pPacket(nullptr), pSwsCtx(nullptr), width(0), height(0) {
 
 }
 
@@ -19,12 +19,12 @@ VideoDecoder::~VideoDecoder() {
 
 }
 
-int VideoDecoder::decode(const char *inputPath, const char *outputPath) {
-    if (!inputPath || !outputPath) {
-        LOGE("decoder decode failed, path invalid.");
+int VideoDecoder::prepare(const char *inputPath) {
+    if (!inputPath) {
+        LOGE("decoder decode failed, path invalid. %s", inputPath);
         return -1;
     }
-    LOGI("decoder inputPath = %s\noutputPath = %s", inputPath, outputPath);
+    LOGI("decoder inputPath = %s\n", inputPath);
     int ret = 0;
     pFormatCtx = avformat_alloc_context();
     if (avformat_open_input(&pFormatCtx, inputPath, nullptr, nullptr) < 0) {
@@ -71,8 +71,8 @@ int VideoDecoder::decode(const char *inputPath, const char *outputPath) {
     }
     pFrame = av_frame_alloc();
     pOutFrame = av_frame_alloc();
-    int width = pDecodeCtx->width;
-    int height = pDecodeCtx->height;
+    width = pDecodeCtx->width;
+    height = pDecodeCtx->height;
     if (width <= 0 || height <= 0) {
         LOGE("decoder decode width <= 0 || height <= 0.");
         releaseDecoder();
@@ -95,38 +95,35 @@ int VideoDecoder::decode(const char *inputPath, const char *outputPath) {
     pSwsCtx = sws_getContext(width, height, pDecodeCtx->pix_fmt,
                              width, height, AV_PIX_FMT_YUV420P,
                              SWS_BICUBIC, nullptr, nullptr, nullptr);
-    yuvFile = fopen(outputPath, "wb+");
-    if (!yuvFile) {
-        LOGE("decoder decode fopen %s failed.", outputPath);
-        releaseDecoder();
-        return -1;
-    }
-    while (av_read_frame(pFormatCtx, pPacket) >= 0) {
-        decodeInner(pPacket, width, height);
-    }
-    decodeInner(nullptr, width, height);
-    fclose(yuvFile);
-    releaseDecoder();
-    LOGI("Decode video to yuv finished.");
     return 0;
 }
 
-int VideoDecoder::decodeInner(AVPacket *packet, int width, int height) {
+int VideoDecoder::decodeFrame(AVFrame **frame, int *width, int *height) {
     int ret = 0;
-    ret = avcodec_send_packet(pDecodeCtx, packet);
+    int readResult = 0;
+    readResult = av_read_frame(pFormatCtx, pPacket);
+    if (readResult >= 0) {
+        ret = avcodec_send_packet(pDecodeCtx, pPacket);
+    } else {
+        ret = avcodec_send_packet(pDecodeCtx, nullptr);
+    }
     if (ret < 0 && (ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)) {
-        return -1;
+        LOGI("avcodec_send_packet, %s", av_err2str(ret));
+        return readResult;
     }
     ret = avcodec_receive_frame(pDecodeCtx, pFrame);
     if (ret < 0) {
-        return -1;
+        LOGI("avcodec_receive_frame, %s", av_err2str(ret));
+        return readResult;
     }
     int h = sws_scale(pSwsCtx, pFrame->data, pFrame->linesize, 0, pDecodeCtx->height, pOutFrame->data,
                       pOutFrame->linesize);
-    fwrite(pOutFrame->data[0], 1, width * h, yuvFile);
-    fwrite(pOutFrame->data[1], 1, width * h / 4, yuvFile);
-    fwrite(pOutFrame->data[2], 1, width * h / 4, yuvFile);
-    return 0;
+    *frame = pOutFrame;
+    *width = this->width;
+    *height = h;
+
+    LOGI("Decode a video frame to yuv");
+    return readResult;
 }
 
 void VideoDecoder::releaseDecoder() {

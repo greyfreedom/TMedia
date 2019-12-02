@@ -18,7 +18,9 @@ public:
 
     ~VideoDecoder();
 
-    int decode(const char *inputPath, const char *outputPath);
+    int prepare(const char *inputPath);
+
+    int decodeFrame(AVFrame **frame, int *width, int *height);
 
     void releaseDecoder();
 
@@ -32,10 +34,8 @@ private:
     AVFrame *pOutFrame;
     AVPacket *pPacket;
     SwsContext *pSwsCtx;
-    FILE *yuvFile;
-
-
-    int decodeInner(AVPacket *packet, int width, int height);
+    int width;
+    int height;
 };
 
 

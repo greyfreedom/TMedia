@@ -24,11 +24,6 @@ public:
     void printCodecInfo();
 
     void decodeVideoToYUV(const char *input, const char *output);
-
-    void releaseFFmpeg();
-
-private:
-    std::shared_ptr<VideoDecoder> mVideoDecoder;
 };
 
 

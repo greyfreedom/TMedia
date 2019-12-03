@@ -35,6 +35,6 @@ object AssetsUtil {
 
 object PathUtil {
     fun getAppExternalPath() : String {
-        return Environment.getExternalStorageDirectory().path + "/tmedia"
+        return Environment.getExternalStorageDirectory().path + "/tmedia/"
     }
 }

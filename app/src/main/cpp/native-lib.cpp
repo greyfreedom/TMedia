@@ -2,6 +2,7 @@
 #include <string>
 #include <logger.h>
 #include "FFmpegEngine.h"
+#include <android/native_window_jni.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,14 +35,27 @@ void decodeVideoToYUV(JNIEnv *env, jobject, jstring input, jstring output) {
     }
 }
 
+void playYuv(JNIEnv *env, jobject, jstring input, jobject surface){
+    ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
+    if (!window) {
+        LOGI("jni create window from surface failed.");
+        return;
+    }
+    if (ffmpeg) {
+        const char *filePath = env->GetStringUTFChars(input, nullptr);
+        ffmpeg->playYUV(filePath, window);
+    }
+}
+
 static const JNINativeMethod gMethods[] = {
-        {"logInfo", "()V", (void *) logInfo},
-        {"setUpNative", "()V", (void *) setUpNative},
-        {"releaseNative", "()V", (void *) releaseNative},
-        {"decodeVideoToYUV", "(Ljava/lang/String;Ljava/lang/String;)V", (void *) decodeVideoToYUV}
+        {"logInfo",          "()V", (void *) logInfo},
+        {"setUpNative",      "()V", (void *) setUpNative},
+        {"releaseNative",    "()V", (void *) releaseNative},
+        {"decodeVideoToYUV", "(Ljava/lang/String;Ljava/lang/String;)V", (void *) decodeVideoToYUV},
+        {"playYuv",          "(Ljava/lang/String;Landroid/view/Surface;)V", (void *) playYuv},
 };
 
-#define kClassName "com/demo/tmediademo/FFmpegFuncActivity"
+#define kClassName "com/demo/tmediademo/FFmpeg$Companion"
 
 JNIEXPORT int
 JNI_OnLoad(JavaVM *vm, void *reserved) {

@@ -18,11 +18,17 @@ public:
 
     ~VideoDecoder();
 
-    int prepare(const char *inputPath);
+    int prepare(const char *inputPath, AVPixelFormat format);
 
-    int decodeFrame(AVFrame **frame, int *width, int *height);
+    int decodeFrame(AVFrame **frame);
 
     void releaseDecoder();
+
+    int getFrameRate();
+
+    int getWidth();
+
+    int getHeight();
 
 private:
     AVFormatContext *pFormatCtx;

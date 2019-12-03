@@ -19,7 +19,7 @@ VideoDecoder::~VideoDecoder() {
 
 }
 
-int VideoDecoder::prepare(const char *inputPath) {
+int VideoDecoder::prepare(const char *inputPath, AVPixelFormat format) {
     if (!inputPath) {
         LOGE("decoder decode failed, path invalid. %s", inputPath);
         return -1;
@@ -85,7 +85,7 @@ int VideoDecoder::prepare(const char *inputPath) {
         releaseDecoder();
         return -1;
     }
-    ret = av_image_alloc(pOutFrame->data, pOutFrame->linesize, width, height, AV_PIX_FMT_YUV420P, 1);
+    ret = av_image_alloc(pOutFrame->data, pOutFrame->linesize, width, height, format, 1);
     if (ret < 0) {
         LOGE("decoder decode av_image_alloc pOutFrame failed.");
         releaseDecoder();
@@ -93,12 +93,12 @@ int VideoDecoder::prepare(const char *inputPath) {
     }
     pPacket = av_packet_alloc();
     pSwsCtx = sws_getContext(width, height, pDecodeCtx->pix_fmt,
-                             width, height, AV_PIX_FMT_YUV420P,
+                             width, height, format,
                              SWS_BICUBIC, nullptr, nullptr, nullptr);
     return 0;
 }
 
-int VideoDecoder::decodeFrame(AVFrame **frame, int *width, int *height) {
+int VideoDecoder::decodeFrame(AVFrame **frame) {
     int ret = 0;
     int readResult = 0;
     readResult = av_read_frame(pFormatCtx, pPacket);
@@ -119,10 +119,7 @@ int VideoDecoder::decodeFrame(AVFrame **frame, int *width, int *height) {
     int h = sws_scale(pSwsCtx, pFrame->data, pFrame->linesize, 0, pDecodeCtx->height, pOutFrame->data,
                       pOutFrame->linesize);
     *frame = pOutFrame;
-    *width = this->width;
-    *height = h;
-
-    LOGI("Decode a video frame to yuv");
+    LOGI("Decode a video frame to yuv, width = %d, height = %d", width, h);
     return readResult;
 }
 
@@ -146,4 +143,19 @@ void VideoDecoder::releaseDecoder() {
         avformat_free_context(pFormatCtx);
         pFormatCtx = nullptr;
     }
+}
+
+int VideoDecoder::getFrameRate() {
+    if (pVideoStream) {
+        return pVideoStream->avg_frame_rate.num / pVideoStream->avg_frame_rate.den;
+    }
+    return 0;
+}
+
+int VideoDecoder::getWidth() {
+    return width;
+}
+
+int VideoDecoder::getHeight() {
+    return height;
 }

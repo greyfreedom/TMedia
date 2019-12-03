@@ -8,6 +8,7 @@
 #include <logger.h>
 #include <memory.h>
 #include <memory>
+#include <android/native_window.h>
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -24,6 +25,8 @@ public:
     void printCodecInfo();
 
     void decodeVideoToYUV(const char *input, const char *output);
+
+    void playYUV(const char *input, ANativeWindow *window);
 };
 
 

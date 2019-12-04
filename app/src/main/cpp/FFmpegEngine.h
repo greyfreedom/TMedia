@@ -27,6 +27,8 @@ public:
     void decodeVideoToYUV(const char *input, const char *output);
 
     void playYUV(const char *input, ANativeWindow *window);
+
+    void decodeAudioToPCM(const char *input, const char *output);
 };
 
 

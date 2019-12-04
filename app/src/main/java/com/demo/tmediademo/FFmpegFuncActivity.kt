@@ -53,6 +53,14 @@ class FFmpegFuncActivity : AppCompatActivity() {
                 FFmpeg.decodeVideoToYUV(inputStr, outputStr)
             }
         ))
+        dataList.add(FFmpegFuncItem(
+            "DecodeAudioToPCM",
+            View.OnClickListener {
+                val inputStr = mExtralPath + "bgm.wav"
+                val outputStr = mExtralPath + "bgm.pcm"
+                FFmpeg.decodeAudioToPCM(inputStr, outputStr)
+            }
+        ))
         return dataList
     }
 

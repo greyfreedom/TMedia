@@ -21,25 +21,25 @@ VideoDecoder::~VideoDecoder() {
 
 int VideoDecoder::prepare(const char *inputPath, AVPixelFormat format) {
     if (!inputPath) {
-        LOGE("decoder decode failed, path invalid. %s", inputPath);
+        LOGE("video decoder failed, path invalid. %s", inputPath);
         return -1;
     }
-    LOGI("decoder inputPath = %s\n", inputPath);
+    LOGI("video decoder inputPath = %s\n", inputPath);
     int ret = 0;
     pFormatCtx = avformat_alloc_context();
     if (avformat_open_input(&pFormatCtx, inputPath, nullptr, nullptr) < 0) {
-        LOGE("decoder decode avformat_open_input failed.");
+        LOGE("video decoder avformat_open_input failed.");
         releaseDecoder();
         return -1;
     }
     if (avformat_find_stream_info(pFormatCtx, nullptr) < 0) {
-        LOGE("decoder decode avformat_find_stream_info failed.");
+        LOGE("video decoder avformat_find_stream_info failed.");
         releaseDecoder();
         return -1;
     }
     ret = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
     if (ret < 0) {
-        LOGE("decoder decode av_find_best_stream failed.");
+        LOGE("video decoder decode av_find_best_stream failed.");
         releaseDecoder();
         return -1;
     }
@@ -47,25 +47,25 @@ int VideoDecoder::prepare(const char *inputPath, AVPixelFormat format) {
     pVideoStream = pFormatCtx->streams[mVideoStreamIndex];
     pVideoDecoder = avcodec_find_decoder(pVideoStream->codecpar->codec_id);
     if (!pVideoDecoder) {
-        LOGE("decoder decode avcodec_find_decoder failed.");
+        LOGE("video decoder avcodec_find_decoder failed.");
         releaseDecoder();
         return -1;
     }
     pDecodeCtx = avcodec_alloc_context3(pVideoDecoder);
     if (!pDecodeCtx) {
-        LOGE("decoder decode avcodec_alloc_context3 failed.");
+        LOGE("video decoder avcodec_alloc_context3 failed.");
         releaseDecoder();
         return -1;
     }
     ret = avcodec_parameters_to_context(pDecodeCtx, pVideoStream->codecpar);
     if (ret < 0) {
-        LOGE("decoder decode avcodec_parameters_to_context failed.");
+        LOGE("video decoder avcodec_parameters_to_context failed.");
         releaseDecoder();
         return -1;
     }
     ret = avcodec_open2(pDecodeCtx, pVideoDecoder, nullptr);
     if (ret < 0) {
-        LOGE("decoder decode avcodec_open2 failed.");
+        LOGE("video decoder avcodec_open2 failed.");
         releaseDecoder();
         return -1;
     }
@@ -74,20 +74,20 @@ int VideoDecoder::prepare(const char *inputPath, AVPixelFormat format) {
     width = pDecodeCtx->width;
     height = pDecodeCtx->height;
     if (width <= 0 || height <= 0) {
-        LOGE("decoder decode width <= 0 || height <= 0.");
+        LOGE("video decoder width <= 0 || height <= 0.");
         releaseDecoder();
         return -1;
     }
     LOGI("video width =%d, height = %d", width, height);
     ret = av_image_alloc(pFrame->data, pFrame->linesize, width, height, pDecodeCtx->pix_fmt, 1);
     if (ret < 0) {
-        LOGE("decoder decode av_image_alloc pFrame failed.");
+        LOGE("video decoder av_image_alloc pFrame failed.");
         releaseDecoder();
         return -1;
     }
     ret = av_image_alloc(pOutFrame->data, pOutFrame->linesize, width, height, format, 1);
     if (ret < 0) {
-        LOGE("decoder decode av_image_alloc pOutFrame failed.");
+        LOGE("video decoder av_image_alloc pOutFrame failed.");
         releaseDecoder();
         return -1;
     }
@@ -102,18 +102,19 @@ int VideoDecoder::decodeFrame(AVFrame **frame) {
     int ret = 0;
     int readResult = 0;
     readResult = av_read_frame(pFormatCtx, pPacket);
+    if (pPacket->stream_index != mVideoStreamIndex) return 0;
     if (readResult >= 0) {
         ret = avcodec_send_packet(pDecodeCtx, pPacket);
     } else {
         ret = avcodec_send_packet(pDecodeCtx, nullptr);
     }
     if (ret < 0 && (ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)) {
-        LOGI("avcodec_send_packet, %s", av_err2str(ret));
+        LOGI("video avcodec_send_packet, %s", av_err2str(ret));
         return readResult;
     }
     ret = avcodec_receive_frame(pDecodeCtx, pFrame);
     if (ret < 0) {
-        LOGI("avcodec_receive_frame, %s", av_err2str(ret));
+        LOGI("video avcodec_receive_frame, %s", av_err2str(ret));
         return readResult;
     }
     int h = sws_scale(pSwsCtx, pFrame->data, pFrame->linesize, 0, pDecodeCtx->height, pOutFrame->data,

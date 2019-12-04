@@ -6,6 +6,7 @@
 #include "VideoDecoder.h"
 #include <thread>
 #include <unistd.h>
+#include "AudioDecoder.h"
 
 using namespace std;
 
@@ -53,6 +54,7 @@ void FFmpegEngine::decodeVideoToYUV(const char *input, const char *output) {
         shared_ptr<VideoDecoder> decoder = std::make_shared<VideoDecoder>();
         if (decoder->prepare(input, AV_PIX_FMT_YUV420P) < 0) {
             decoder->releaseDecoder();
+            return;
         }
         int width = decoder->getWidth();
         int height = decoder->getHeight();
@@ -90,6 +92,7 @@ void FFmpegEngine::playYUV(const char *input, ANativeWindow *window) {
         shared_ptr<VideoDecoder> decoder = make_shared<VideoDecoder>();
         if (decoder->prepare(input, AV_PIX_FMT_RGBA) < 0) {
             decoder->releaseDecoder();
+            return;
         }
         int width = decoder->getWidth();
         int height = decoder->getHeight();
@@ -122,6 +125,29 @@ void FFmpegEngine::playYUV(const char *input, ANativeWindow *window) {
             frame = nullptr;
         } while (ret >= 0);
         decoder->releaseDecoder();
+    });
+    t.detach();
+}
+
+void FFmpegEngine::decodeAudioToPCM(const char *input, const char *output) {
+    thread t([input, output] {
+        FILE *out = fopen(output, "wb+");
+        if (!out) {
+            LOGE("decodeAudioToPCM fopen %s failed.", output);
+            return;
+        }
+        shared_ptr<AudioDecoder> decoder = make_shared<AudioDecoder>();
+        if (decoder->prepare(input, AV_SAMPLE_FMT_S16) < 0) {
+            decoder->releaseDecoder();
+            return;
+        }
+        while (decoder->decodeFrame([out](AVFrame *frame) mutable {
+            LOGI("decode a audio frame, linesize = %d", frame->linesize[0]);
+            int size = frame->linesize[0] * frame->channels;
+            fwrite(frame->data[0], 1, size, out);
+        }) >= 0);
+        decoder->releaseDecoder();
+        LOGI("decode audio to pcm finish.");
     });
     t.detach();
 }

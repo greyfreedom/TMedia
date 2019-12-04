@@ -47,12 +47,21 @@ void playYuv(JNIEnv *env, jobject, jstring input, jobject surface){
     }
 }
 
+void decodeAudioToPCM(JNIEnv *env, jobject, jstring input, jstring output) {
+    if (ffmpeg) {
+        const char *inputPath = env->GetStringUTFChars(input, nullptr);
+        const char *outputPath = env->GetStringUTFChars(output, nullptr);
+        ffmpeg->decodeAudioToPCM(inputPath, outputPath);
+    }
+}
+
 static const JNINativeMethod gMethods[] = {
         {"logInfo",          "()V", (void *) logInfo},
         {"setUpNative",      "()V", (void *) setUpNative},
         {"releaseNative",    "()V", (void *) releaseNative},
         {"decodeVideoToYUV", "(Ljava/lang/String;Ljava/lang/String;)V", (void *) decodeVideoToYUV},
         {"playYuv",          "(Ljava/lang/String;Landroid/view/Surface;)V", (void *) playYuv},
+        {"decodeAudioToPCM", "(Ljava/lang/String;Ljava/lang/String;)V", (void *) decodeAudioToPCM},
 };
 
 #define kClassName "com/demo/tmediademo/FFmpeg$Companion"

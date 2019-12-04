@@ -19,5 +19,7 @@ class FFmpeg {
         external fun decodeVideoToYUV(inputPath: String, outputPath: String)
 
         external fun playYuv(inputPath: String, surface: Surface)
+
+        external fun decodeAudioToPCM(inputPath: String, outputPath: String)
     }
 }

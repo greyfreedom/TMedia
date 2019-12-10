@@ -7,10 +7,11 @@
 #include <thread>
 #include <unistd.h>
 #include "AudioDecoder.h"
+#include "AudioPlayer.h"
 
 using namespace std;
 
-FFmpegEngine::FFmpegEngine() {
+FFmpegEngine::FFmpegEngine() : audioPlayer(nullptr) {
 }
 
 FFmpegEngine::~FFmpegEngine() {
@@ -151,3 +152,31 @@ void FFmpegEngine::decodeAudioToPCM(const char *input, const char *output) {
     });
     t.detach();
 }
+
+void FFmpegEngine::playAudio(const char *input) {
+    if (!audioPlayer) {
+        audioPlayer = std::make_shared<AudioPlayer>();
+        if (audioPlayer->prepare(input) >= 0) {
+            audioPlayer->play();
+        } else {
+            audioPlayer->stop();
+            audioPlayer = nullptr;
+        }
+    } else {
+        audioPlayer->play();
+    }
+}
+
+void FFmpegEngine::pauseAudio() {
+    if (audioPlayer) {
+        audioPlayer->pause();
+    }
+}
+
+void FFmpegEngine::stopAudio() {
+    if (audioPlayer) {
+        audioPlayer->stop();
+        audioPlayer = nullptr;
+    }
+}
+

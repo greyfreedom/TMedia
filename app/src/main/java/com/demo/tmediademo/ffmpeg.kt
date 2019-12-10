@@ -21,5 +21,11 @@ class FFmpeg {
         external fun playYuv(inputPath: String, surface: Surface)
 
         external fun decodeAudioToPCM(inputPath: String, outputPath: String)
+
+        external fun playAudio(inputPath: String)
+
+        external fun pauseAudio()
+
+        external fun stopAudio()
     }
 }

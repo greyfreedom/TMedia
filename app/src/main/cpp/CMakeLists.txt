@@ -11,11 +11,13 @@ include_directories(
         include/ffmpeg
         utils/
         decoder/
+        player/
 )
 
 # copy source file path
 aux_source_directory(${PROJECT_SOURCE_DIR} FFMPEG_ENGINE)
 aux_source_directory(${PROJECT_SOURCE_DIR}/decoder/ DECODER)
+aux_source_directory(${PROJECT_SOURCE_DIR}/player/ PLAYER)
 
 
 # Creates and names a library, sets it as either STATIC
@@ -32,7 +34,8 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         native-lib.cpp
         ${FFMPEG_ENGINE}
-        ${DECODER})
+        ${DECODER}
+        ${PLAYER})
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -72,6 +75,7 @@ target_link_libraries( # Specifies the target library.
 
         ffmpeg
         android
+        OpenSLES
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})

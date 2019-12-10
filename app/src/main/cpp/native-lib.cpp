@@ -35,7 +35,7 @@ void decodeVideoToYUV(JNIEnv *env, jobject, jstring input, jstring output) {
     }
 }
 
-void playYuv(JNIEnv *env, jobject, jstring input, jobject surface){
+void playYuv(JNIEnv *env, jobject, jstring input, jobject surface) {
     ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
     if (!window) {
         LOGI("jni create window from surface failed.");
@@ -55,13 +55,35 @@ void decodeAudioToPCM(JNIEnv *env, jobject, jstring input, jstring output) {
     }
 }
 
+void playAudio(JNIEnv *env, jobject, jstring input) {
+    if (ffmpeg) {
+        const char *inputPath = env->GetStringUTFChars(input, nullptr);
+        ffmpeg->playAudio(inputPath);
+    }
+}
+
+void pauseAudio(JNIEnv *env, jobject) {
+    if (ffmpeg) {
+        ffmpeg->pauseAudio();
+    }
+}
+
+void stopAudio(JNIEnv *env, jobject) {
+    if (ffmpeg) {
+        ffmpeg->stopAudio();
+    }
+}
+
 static const JNINativeMethod gMethods[] = {
-        {"logInfo",          "()V", (void *) logInfo},
-        {"setUpNative",      "()V", (void *) setUpNative},
-        {"releaseNative",    "()V", (void *) releaseNative},
-        {"decodeVideoToYUV", "(Ljava/lang/String;Ljava/lang/String;)V", (void *) decodeVideoToYUV},
+        {"logInfo",          "()V",                                         (void *) logInfo},
+        {"setUpNative",      "()V",                                         (void *) setUpNative},
+        {"releaseNative",    "()V",                                         (void *) releaseNative},
+        {"decodeVideoToYUV", "(Ljava/lang/String;Ljava/lang/String;)V",     (void *) decodeVideoToYUV},
         {"playYuv",          "(Ljava/lang/String;Landroid/view/Surface;)V", (void *) playYuv},
-        {"decodeAudioToPCM", "(Ljava/lang/String;Ljava/lang/String;)V", (void *) decodeAudioToPCM},
+        {"decodeAudioToPCM", "(Ljava/lang/String;Ljava/lang/String;)V",     (void *) decodeAudioToPCM},
+        {"playAudio",        "(Ljava/lang/String;)V",                       (void *) playAudio},
+        {"pauseAudio",       "()V",                                         (void *) pauseAudio},
+        {"stopAudio",        "()V",                                         (void *) stopAudio},
 };
 
 #define kClassName "com/demo/tmediademo/FFmpeg$Companion"

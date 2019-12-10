@@ -15,6 +15,7 @@ extern "C" {
 };
 
 class VideoDecoder;
+class AudioPlayer;
 
 class FFmpegEngine {
 public:
@@ -29,6 +30,15 @@ public:
     void playYUV(const char *input, ANativeWindow *window);
 
     void decodeAudioToPCM(const char *input, const char *output);
+
+    void playAudio(const char *input);
+
+    void pauseAudio();
+
+    void stopAudio();
+
+private:
+    std::shared_ptr<AudioPlayer> audioPlayer;
 };
 
 

@@ -12,7 +12,7 @@ extern "C" {
 AudioDecoder::AudioDecoder() : pFormatCtx(nullptr), mAudioStreamIndex(-1), pAudioStream(nullptr),
                                pAudioDecoder(nullptr), pDecodeCtx(nullptr), pFrame(nullptr), pOutFrame(nullptr),
                                pPacket(nullptr), pSwrCtx(nullptr), sampleRate(0), sampleFormat(AV_SAMPLE_FMT_NONE),
-                               nbChannels(0) {
+                               outSampleFmt(AV_SAMPLE_FMT_NONE), nbChannels(0), isLoop(false) {
 
 }
 
@@ -73,6 +73,7 @@ int AudioDecoder::prepare(const char *inputPath, AVSampleFormat outFormat) {
     sampleRate = pAudioStream->codecpar->sample_rate;
     sampleFormat = static_cast<AVSampleFormat>(pAudioStream->codecpar->format);
     nbChannels = pAudioStream->codecpar->channels;
+    outSampleFmt = outFormat;
 
     if (sampleRate <= 0 || sampleFormat < 0 || nbChannels <= 0 || outFormat < 0) {
         LOGE("audio decoder something error. sampleRate %d, sampleFormat = %d, nbChannels = %d, outFormat = %d",
@@ -107,7 +108,13 @@ int AudioDecoder::decodeFrame(std::function<void(AVFrame *frame)> callback) {
     START_DECODE:
     ret = av_read_frame(pFormatCtx, pPacket);
     if (ret < 0) {
-        ret = avcodec_send_packet(pDecodeCtx, nullptr);
+        if (!isLoop) {
+            ret = avcodec_send_packet(pDecodeCtx, nullptr);
+        } else {
+            av_seek_frame(pFormatCtx, mAudioStreamIndex, 0, AVSEEK_FLAG_BACKWARD);
+            LOGI("seek to start..");
+            goto START_DECODE;
+        }
     } else {
         if (pPacket->stream_index == mAudioStreamIndex) {
             ret = avcodec_send_packet(pDecodeCtx, pPacket);
@@ -132,6 +139,11 @@ int AudioDecoder::decodeFrame(std::function<void(AVFrame *frame)> callback) {
             return 0;
         } else if (ret == AVERROR_EOF) {
             LOGI("audio decoder avcodec_receive_frame error eof");
+            if (isLoop) {
+                av_seek_frame(pFormatCtx, mAudioStreamIndex, 0, AVSEEK_FLAG_BACKWARD);
+                LOGI("seek to start..");
+                goto START_DECODE;
+            }
             return -1;
         } else if (ret < 0) {
             return -1;
@@ -163,4 +175,39 @@ void AudioDecoder::releaseDecoder() {
         avformat_free_context(pFormatCtx);
         pFormatCtx = nullptr;
     }
+}
+
+int AudioDecoder::getOutputSampleRate() {
+    return sampleRate;
+}
+
+int AudioDecoder::getOutputSampleFmtBit() {
+    int bit = 0;
+    if (outSampleFmt == AV_SAMPLE_FMT_U8
+        || outSampleFmt == AV_SAMPLE_FMT_U8P) {
+        bit = 8;
+    } else if (outSampleFmt == AV_SAMPLE_FMT_S16
+               || outSampleFmt == AV_SAMPLE_FMT_S16P) {
+        bit = 16;
+    } else if (outSampleFmt == AV_SAMPLE_FMT_S32
+               || outSampleFmt == AV_SAMPLE_FMT_FLT
+               || outSampleFmt == AV_SAMPLE_FMT_S32) {
+        bit = 32;
+    } else if (outSampleFmt == AV_SAMPLE_FMT_DBL
+               || outSampleFmt == AV_SAMPLE_FMT_DBLP
+               || outSampleFmt == AV_SAMPLE_FMT_S64
+               || outSampleFmt == AV_SAMPLE_FMT_S64P) {
+        bit = 64;
+    } else {
+        bit = 16;
+    }
+    return bit;
+}
+
+int AudioDecoder::getOutputChannels() {
+    return nbChannels;
+}
+
+void AudioDecoder::setLoop(bool loop) {
+    isLoop = loop;
 }

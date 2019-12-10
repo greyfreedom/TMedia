@@ -22,7 +22,15 @@ public:
 
     int decodeFrame(std::function<void(AVFrame *frame)> callback);
 
+    void setLoop(bool loop);
+
     void releaseDecoder();
+
+    int getOutputSampleRate();
+
+    int getOutputSampleFmtBit();
+
+    int getOutputChannels();
 
 private:
     AVFormatContext *pFormatCtx;
@@ -36,7 +44,9 @@ private:
     SwrContext *pSwrCtx;
     int sampleRate;
     AVSampleFormat sampleFormat;
+    AVSampleFormat outSampleFmt;
     int nbChannels;
+    bool isLoop;
 };
 
 

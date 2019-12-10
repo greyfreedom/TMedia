@@ -11,9 +11,9 @@ fdk-aac版本:2.0.0 [下载地址](http://www.linuxfromscratch.org/blfs/view/svn
 - [x] 视频解码成YUV [博客地址](https://blog.csdn.net/greyfreedom/article/details/103319635)
 - [x] 视频格式及尺寸变化
 - [x] 在Native通过ANativeWindow播放视频
-- [ ] 音频解码成PCM
+- [x] 音频解码成PCM
 - [ ] 音频重采样
-- [ ] OpenSLES播放PCM音频
+- [x] OpenSLES播放PCM音频
 - [ ] 使用H264编码视频
 - [ ] 使用AAC编码音频
 - [ ] SDL播放音视频

@@ -61,11 +61,31 @@ class FFmpegFuncActivity : AppCompatActivity() {
                 FFmpeg.decodeAudioToPCM(inputStr, outputStr)
             }
         ))
+        dataList.add(FFmpegFuncItem(
+            "PlayAudio",
+            View.OnClickListener {
+                val inputStr = mExtralPath + "bgm.wav"
+                FFmpeg.playAudio(inputStr)
+            }
+        ))
+        dataList.add(FFmpegFuncItem(
+            "PauseAudio",
+            View.OnClickListener {
+                FFmpeg.pauseAudio()
+            }
+        ))
+        dataList.add(FFmpegFuncItem(
+            "StopAudio",
+            View.OnClickListener {
+                FFmpeg.stopAudio()
+            }
+        ))
         return dataList
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        FFmpeg.stopAudio()
         FFmpeg.releaseNative()
     }
 }

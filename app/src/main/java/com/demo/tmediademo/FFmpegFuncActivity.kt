@@ -64,7 +64,7 @@ class FFmpegFuncActivity : AppCompatActivity() {
         dataList.add(FFmpegFuncItem(
             "PlayAudio",
             View.OnClickListener {
-                val inputStr = mExtralPath + "bgm.wav"
+                val inputStr = mExtralPath + "Summer.mp3"
                 FFmpeg.playAudio(inputStr)
             }
         ))

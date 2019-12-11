@@ -79,9 +79,15 @@ int AudioDecoder::prepare(const char *inputPath, AVSampleFormat outFormat) {
         LOGE("audio decoder something error. sampleRate %d, sampleFormat = %d, nbChannels = %d, outFormat = %d",
              sampleRate, sampleFormat, nbChannels, outFormat);
     }
+    LOGI("audio decoder, sampleRate %d, sampleFormat = %d, nbChannels = %d, outFormat = %d",
+         sampleRate, sampleFormat, nbChannels, outFormat);
 
     pFrame = av_frame_alloc();
     pOutFrame = av_frame_alloc();
+    pOutFrame->sample_rate = sampleRate;
+    pOutFrame->format = outFormat;
+    pOutFrame->channels = nbChannels;
+    pOutFrame->channel_layout = AV_CH_LAYOUT_STEREO;
     pPacket = av_packet_alloc();
 
     pSwrCtx = swr_alloc();
@@ -148,8 +154,20 @@ int AudioDecoder::decodeFrame(std::function<void(AVFrame *frame)> callback) {
         } else if (ret < 0) {
             return -1;
         } else {
+            pFrame->channel_layout = av_get_default_channel_layout(nbChannels);
+            pOutFrame->nb_samples = pFrame->nb_samples;
+            LOGI("input frame samplerate = %d, nb_sample = %d, fmt = %d, channel_layout = %lld",
+                 pFrame->sample_rate, pFrame->nb_samples, pFrame->format, pFrame->channel_layout);
+            LOGI("out frame samplerate = %d, nb_sample = %d, fmt = %d, channel_layout = %lld",
+                 pOutFrame->sample_rate, pOutFrame->nb_samples, pOutFrame->format, pOutFrame->channel_layout);
+            int64_t delay = swr_get_delay(pSwrCtx, sampleRate);
+            LOGI("resample delay = %lld", delay);
+            ret = swr_convert_frame(pSwrCtx, pOutFrame, pFrame);
+            if (ret < 0) {
+                LOGE("swr_convert_frame error %s", av_err2str(ret));
+            }
             if (callback) {
-                callback(pFrame);
+                callback(pOutFrame);
             }
         }
     }

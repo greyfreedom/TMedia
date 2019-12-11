@@ -27,7 +27,7 @@ static void pcmBufferCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
 int AudioPlayer::prepare(const char *inputPath) {
     audioDecoder = std::make_shared<AudioDecoder>();
-    if (audioDecoder->prepare(inputPath, AV_SAMPLE_FMT_S16) < 0) {
+    if (audioDecoder->prepare(inputPath, PLAYER_TARGET_FMT) < 0) {
         LOGE("AudioPlayer decoder prepare error.");
         clean();
         return -1;
@@ -84,7 +84,7 @@ int AudioPlayer::prepare(const char *inputPath) {
     SLuint32 channelLayoutInfo = getChannelLayout(channels);
     SLuint32 sampleRateInfo = getSampleRate(sampleRate);
     SLuint32 sampleFormatInfo = getSampleFormat(sampleFmtBit);
-    LOGE("init pcm info, channels = %d, channelLayout = %d, sampleRate = %d, sampleFormat = %d",
+    LOGI("init pcm info, channels = %d, channelLayout = %d, sampleRate = %d, sampleFormat = %d",
          channelsInfo, channelLayoutInfo, sampleRateInfo, sampleFormatInfo);
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
@@ -260,9 +260,10 @@ void AudioPlayer::clean() {
 void AudioPlayer::feedPcm() {
     if (audioDecoder) {
         audioDecoder->decodeFrame([this](AVFrame *frame) mutable {
-            int size = frame->nb_samples * frame->channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+            LOGI("decode frame");
+            int size = frame->nb_samples * frame->channels * av_get_bytes_per_sample(PLAYER_TARGET_FMT);
             LOGI("decode a frame, size = %d, linesize = %d", size, frame->linesize[0]);
-            (*pcmBufferQueue)->Enqueue(pcmBufferQueue, frame->data[0], frame->linesize[0]);
+            (*pcmBufferQueue)->Enqueue(pcmBufferQueue, frame->data[0], size);
         });
     }
 }

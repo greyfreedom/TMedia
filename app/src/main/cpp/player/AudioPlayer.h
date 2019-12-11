@@ -28,6 +28,9 @@ public:
     void stop();
 
 private:
+
+    const AVSampleFormat PLAYER_TARGET_FMT = AV_SAMPLE_FMT_S16;
+
     SLObjectItf engineObject;
     SLEngineItf engineEngine;
 
